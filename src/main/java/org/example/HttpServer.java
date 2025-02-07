@@ -111,7 +111,7 @@ public class HttpServer {
                 String body = readRequestBody(in);
                 req.setBody(body);
                 String responseBody = postRoutes.get(path).apply(req, res);
-                sendResponse(out, 200, "application/json", responseBody);
+                sendResponse(out, 201, "application/json", responseBody);
             }
             else {
                 System.out.println("Buscando archivo estático en: " + staticDirectory + path);

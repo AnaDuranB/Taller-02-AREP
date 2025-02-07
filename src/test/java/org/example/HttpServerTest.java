@@ -1,43 +1,71 @@
 package org.example;
 
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import static org.junit.jupiter.api.Assertions.*;
-import java.io.*;
 
-import java.nio.charset.StandardCharsets;
+import java.io.*;
+import java.net.Socket;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 public class HttpServerTest {
 
-    @Test
-    public void testHandleApiRequestGet() throws IOException {
-        HttpServer server = new HttpServer();
-        String request = "GET /api/components HTTP/1.1\r\n\r\n"; // simulamos una solicitud GET
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        BufferedReader in = new BufferedReader(new StringReader(request)); // leemos la solicitud
-        OutputStream out = new BufferedOutputStream(outputStream); // BufferedOutputStream para capturar la salida
-
-        server.handleApiRequest("GET", "/api/components", in, out); // manejamos la solicitud
-
-        // convertimos la respuesta a una cadena legible
-        String response = outputStream.toString(StandardCharsets.UTF_8.name());
-        System.out.println(response);
-
-        assertTrue(response.contains("200 OK"), "La respuesta debe contener '200 OK'");
+    @BeforeAll
+    static void startServer() {
+        new Thread(() -> HttpServer.main(new String[]{})).start();
+        try {
+            Thread.sleep(1000); // Esperar a que el servidor inicie
+        } catch (InterruptedException ignored) {}
     }
 
+    private String sendHttpRequest(String request) throws IOException {
+        try (Socket socket = new Socket("localhost", 35000);
+             OutputStream out = socket.getOutputStream();
+             InputStream in = socket.getInputStream()) {
+
+            out.write(request.getBytes());
+            out.flush();
+
+            BufferedReader reader = new BufferedReader(new InputStreamReader(in));
+            StringBuilder response = new StringBuilder();
+            String line;
+            while ((line = reader.readLine()) != null) {
+                response.append(line).append("\n");
+                if (line.isEmpty()) break; // Fin de encabezados
+            }
+            return response.toString();
+        }
+    }
 
     @Test
-    public void testHandleApiRequestPost() throws IOException {
-        HttpServer server = new HttpServer();
-        String request = "POST /api/components HTTP/1.1\r\nContent-Length: 52\r\n\r\n{\"name\":\"RAM\", \"type\":\"Memoria RAM\", \"price\":100.0}";
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        BufferedReader in = new BufferedReader(new StringReader(request));
-        OutputStream out = new BufferedOutputStream(outputStream);
+    void testGetHello() throws IOException {
+        String response = sendHttpRequest("GET /hello?name=John HTTP/1.1\r\nHost: localhost\r\n\r\n");
+        assertTrue(response.contains("200 OK"));
+    }
 
-        server.handleApiRequest("POST", "/api/components", in, out);
+    @Test
+    void testGetPi() throws IOException {
+        String response = sendHttpRequest("GET /pi HTTP/1.1\r\nHost: localhost\r\n\r\n");
+        assertTrue(response.contains("200 OK"));
+    }
 
-        String response = outputStream.toString(StandardCharsets.UTF_8.name());
-        System.out.println(response);
+    @Test
+    void testPostComponent() throws IOException {
+        String requestBody = "{\"name\": \"CPU\", \"type\": \"Processor\", \"price\": \"299.99\"}";
+        String request = "POST /api/components HTTP/1.1\r\n" +
+                "Host: localhost\r\n" +
+                "Content-Type: application/json\r\n" +
+                "Content-Length: " + requestBody.length() + "\r\n\r\n" +
+                requestBody;
+
+        String response = sendHttpRequest(request);
         assertTrue(response.contains("201 Created"));
+    }
+
+    @Test
+    void testInvalidRoute() throws IOException {
+        String response = sendHttpRequest("GET /invalid HTTP/1.1\r\nHost: localhost\r\n\r\n");
+        assertTrue(response.contains("404 Not Found"));
     }
 }
