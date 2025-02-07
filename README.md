@@ -196,6 +196,16 @@ El servidor puede probarse usando herramientas como:
 - **Postman**: Para enviar solicitudes POST y probar la API REST.
 - **curl**: Para pruebas desde la terminal.
 
+Para ejecutar las pruebas automatizadas:
+
+```
+mvn test
+```
+![image](https://github.com/user-attachments/assets/dee2326f-4be9-43f5-a6f4-f4fd40ecd294)
+
+Estas pruebas verifican la correcta respuesta del servidor ante diferentes solicitudes.
+
+
 Ejemplo con `curl`:
 
 ```bash
