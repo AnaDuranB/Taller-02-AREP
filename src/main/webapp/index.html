@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lista de Componentes</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="icon" href="images/computadora.png" type="image/x-icon">
+</head>
+<body>
+<div class="container">
+    <h1>🛒 Lista de Componentes PC</h1>
+
+    <form id="componentForm">
+        <label for="name">Nombre:</label>
+        <input type="text" id="name" name="name" placeholder="Nombre componente" required>
+
+        <label for="type">Tipo:</label>
+        <select id="type" name="type">
+            <option value="CPU">Procesador</option>
+            <option value="GPU">Tarjeta Gráfica</option>
+            <option value="RAM">Memoria RAM</option>
+            <option value="RAM">Placa Madre</option>
+        </select>
+
+        <label for="price">Precio:</label>
+        <input type="number" id="price" name="price" placeholder="Precio" step="0.01" required>
+
+        <div class="button-container">
+            <button type="submit">Agregar</button>
+        </div>
+    </form>
+
+    <h2 id="componentsHeader" style="display: none;">Componentes agregados:</h2>
+    <table id="componentTable" style="display: none;">
+        <thead>
+        <tr>
+            <th>Nombre</th>
+            <th>Tipo</th>
+            <th>Precio</th>
+        </tr>
+        </thead>
+        <tbody id="componentList"></tbody>
+    </table>
+
+</div>
+<script src="app.js"></script>
+</body>
+</html>
