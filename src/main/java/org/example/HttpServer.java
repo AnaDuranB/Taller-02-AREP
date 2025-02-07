@@ -10,12 +10,9 @@ import java.util.Map;
 import java.util.function.BiFunction;
 
 /**
- * Esta clase implementa un servidor HTTP básico que maneja solicitudes GET y POST para una API,
- * así como solicitudes para servir archivos estáticos (HTML, CSS, JS, imágenes) desde el servidor.
- * Escucha en el puerto 35000 y gestiona componentes que se almacenan en una lista.
- * No usa frameworks, solo bibliotecas estándar de Java.
+ * Esta clase  implementa un servidor HTTP básico sin frameworks.
+ * Permite manejar solicitudes GET y POST, servir archivos estáticos y gestionar una API.
  */
-
 public class HttpServer {
     private static final List<Component> components = new ArrayList<>();
 
@@ -23,6 +20,9 @@ public class HttpServer {
     private static final Map<String, BiFunction<Request, Response, String>> postRoutes = new HashMap<>();
     private static String staticDirectory = "src/main/webapp";
 
+    /**
+     * Metodo principal que inicia el servidor, configura rutas y define el puerto.
+     */
     public static void main(String[] args) {
         staticfiles("src/main/webapp");
 
@@ -56,19 +56,38 @@ public class HttpServer {
         start(35000);
     }
 
+    /**
+     * Define una ruta POST y su manejador.
+     *
+     * @param path La ruta de la solicitud POST.
+     * @param handler El manejador de la solicitud, que recibe un objeto Request y Response.
+     */
     public static void get(String path, BiFunction<Request, Response, String> handler) {
         getRoutes.put(path, handler);
     }
 
+    /**
+     * Define una ruta POST y su manejador.
+     */
     public static void post(String path, BiFunction<Request, Response, String> handler) {
         postRoutes.put(path, handler);
     }
 
+    /**
+     * Configura el directorio donde se encuentran los archivos estáticos.
+     *
+     * @param path La ruta del directorio que contiene los archivos estáticos.
+     */
     public static void staticfiles(String path) {
         staticDirectory = path;
         System.out.println("Archivos estáticos servidos desde: " + new File(staticDirectory).getAbsolutePath());
     }
 
+    /**
+     * Inicia el servidor en el puerto especificado.
+     *
+     * @param port El puerto en el que el servidor escuchará las solicitudes.
+     */
     public static void start(int port) {
         try (ServerSocket serverSocket = new ServerSocket(port)) {
             System.out.println("Servidor en ejecución en el puerto " + port);
@@ -83,6 +102,11 @@ public class HttpServer {
         }
     }
 
+    /**
+     * Maneja las solicitudes entrantes y genera las respuestas.
+     *
+     * @param clientSocket El socket del cliente que realiza la solicitud.
+     */
     private static void handleRequest(Socket clientSocket) {
         try (
                 BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
@@ -124,6 +148,12 @@ public class HttpServer {
         }
     }
 
+    /**
+     * Lee el cuerpo de la solicitud HTTP.
+     *
+     * @param in El BufferedReader que lee la solicitud.
+     * @return El cuerpo de la solicitud como una cadena de texto.
+     */
     private static String readRequestBody(BufferedReader in) throws IOException {
         StringBuilder body = new StringBuilder();
         int contentLength = 0;
@@ -147,7 +177,12 @@ public class HttpServer {
     }
 
 
-    // Extrae parámetros de la consulta de la URL (?name=Pedro&age=30)
+    /**
+     * Extrae parámetros de la consulta de la URL.
+     *
+     * @param fullPath La ruta completa de la URL, incluyendo los parámetros de consulta.
+     * @return Un mapa con los parámetros de consulta.
+     */
     private static Map<String, String> getQueryParams(String fullPath) {
         Map<String, String> queryParams = new HashMap<>();
         if (fullPath.contains("?")) {
@@ -187,6 +222,14 @@ public class HttpServer {
         }
     }
 
+    /**
+     * Envía una respuesta HTTP al cliente.
+     *
+     * @param out El OutputStream para enviar la respuesta.
+     * @param statusCode El código de estado HTTP.
+     * @param contentType El tipo de contenido de la respuesta.
+     * @param body El cuerpo de la respuesta.
+     */
     private static void sendResponse(OutputStream out, int statusCode, String contentType, String body) throws IOException {
         String statusLine = "HTTP/1.1 " + statusCode + " " + getStatusMessage(statusCode) + "\r\n";
         String headers = "Content-Type: " + contentType + "\r\n" +
@@ -196,6 +239,13 @@ public class HttpServer {
         out.write((statusLine + headers + body).getBytes());
         out.flush();
     }
+
+    /**
+     * Devuelve un mensaje de estado HTTP basado en el código de estado.
+     *
+     * @param statusCode El código de estado HTTP.
+     * @return El mensaje de estado correspondiente.
+     */
     private static String getStatusMessage(int statusCode) {
         return switch (statusCode) {
             case 200 -> "OK";
@@ -208,7 +258,12 @@ public class HttpServer {
         };
     }
 
-    // Determina el tipo de contenido (MIME type)
+    /**
+     * Determina el tipo de contenido (MIME type) basado en la extensión del archivo.
+     *
+     * @param path La ruta del archivo.
+     * @return El tipo de contenido correspondiente.
+     */
     private static String getContentType(String path) {
         if (path.endsWith(".html")) return "text/html";
         if (path.endsWith(".css")) return "text/css";
@@ -220,6 +275,13 @@ public class HttpServer {
         if (path.endsWith(".ico")) return "image/x-icon";
         return "application/octet-stream";
     }
+
+    /**
+     * Parsea una cadena JSON en un mapa de clave-valor.
+     *
+     * @param json La cadena JSON a parsear.
+     * @return Un mapa con los datos parseados.
+     */
     private static Map<String, String> parseJson(String json) {
         Map<String, String> map = new HashMap<>();
 
@@ -249,7 +311,12 @@ public class HttpServer {
     }
 
 
-    // Convierte la lista de componentes a un formato JSON manualmente
+    /**
+     * Convierte la lista de componentes a un formato JSON manualmente.
+     *
+     * @param components La lista de componentes a convertir.
+     * @return Una cadena JSON que representa la lista de componentes.
+     */
     private static String toJson(List<Component> components) {
         StringBuilder json = new StringBuilder("[");
         for (int i = 0; i < components.size(); i++) {
